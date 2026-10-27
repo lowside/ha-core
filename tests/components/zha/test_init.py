@@ -346,10 +346,16 @@ async def test_timezone_update(
     assert hass.config.time_zone == "US/Pacific"
     assert gateway.config.local_timezone == zoneinfo.ZoneInfo("US/Pacific")
 
-    await hass.config.async_update(time_zone="America/New_York")
+    with patch.object(
+        gateway, "update_local_timezone", wraps=gateway.update_local_timezone
+    ) as mock_update_local_timezone:
+        await hass.config.async_update(time_zone="America/New_York")
 
     assert hass.config.time_zone == "America/New_York"
     assert gateway.config.local_timezone == zoneinfo.ZoneInfo("America/New_York")
+    mock_update_local_timezone.assert_called_once_with(
+        zoneinfo.ZoneInfo("America/New_York")
+    )
 
 
 async def test_setup_no_firmware_update_in_progress(
